@@ -14,14 +14,14 @@ data class UserEntity (
     @Column(nullable = true)
     val password: String = "", // Store hashed
 
-    @Column(nullable = false)
-    val email: String,
+    @Column(nullable = true)
+    val email: String = "",
 
     @Column(unique = true, nullable = true)
     val googleId: String?,
 
-    @Column(nullable = false)
-    val roles: String, // e.g., "ROLE_USER,ROLE_ADMIN"
+    @Column(nullable = true)
+    val roles: String = "ROLE_USER", // e.g., "ROLE_USER,ROLE_ADMIN"
 
     private var totalPoints: Float = 0.0f,
 

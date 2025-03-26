@@ -25,29 +25,41 @@ class AuthController(
 ) {
 
     @PostMapping("/register")
-    fun register(@RequestBody user: UserEntity): ResponseEntity<String> {
+    fun register(@RequestBody user: UserEntity): ResponseEntity<Any>{
         if (userRepository.findByUsername(user.username)!=null) {
-            return ResponseEntity.badRequest().body("Username is already taken")
+            return ResponseEntity.badRequest().body(ErrorResponse("Username is already taken"))
         }
 
         val hashedUser = user.copy(password = passwordEncoder.encode(user.password))
         userRepository.save(hashedUser)
-        return ResponseEntity.ok("User registered successfully")
+        val jwtToken = jwtService.generateToken(user)
+        return ResponseEntity.ok(
+            AuthResponse(
+                userId = user.id,
+                name = user.username,
+                email = user.email,
+                token = jwtToken
+            )
+        )
     }
 
     @PostMapping("/login")
-    fun login(@RequestBody authRequest: AuthRequest): ResponseEntity<Map<String, String>> {
-        // Autenticar al usuario
+    fun login(@RequestBody authRequest: AuthRequest): ResponseEntity<AuthResponse> {
         val authentication = authenticationManager.authenticate(
             UsernamePasswordAuthenticationToken(authRequest.username, authRequest.password)
         )
 
-        // Generar JWT
         val userDetails = authentication.principal as UserEntity
-        val jwt = jwtService.generateToken(userDetails)
+        val jwtToken = jwtService.generateToken(userDetails)
 
-        // Devolver el JWT al cliente
-        return ResponseEntity.ok(mapOf("token" to jwt))
+        return ResponseEntity.ok(
+            AuthResponse(
+                userId = userDetails.id,
+                name = userDetails.username,
+                email = userDetails.email,
+                token = jwtToken
+            )
+        )
     }
 
     @PostMapping("/google-login")
@@ -84,5 +96,6 @@ class AuthController(
     data class GoogleAuthRequest(val idToken: String)
     data class AuthRequest(val username: String, val password: String)
     data class AuthResponse(val userId: Long, val name: String, val email: String, val token: String)
+    data class ErrorResponse(val message: String)
 
 }
