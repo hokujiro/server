@@ -2,18 +2,17 @@ package com.madetolive.server.entity
 
 import jakarta.persistence.*
 
-//DigitalOcean
 @Entity
 @Table(name = "users")
 data class UserEntity (
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) val id: Long,
+    @GeneratedValue(strategy = GenerationType.IDENTITY) val id: Long = 0,
 
     @Column(nullable = false)
     val username: String = "",
 
-    @Column(nullable = false)
-    val password: String, // Store hashed
+    @Column(nullable = true)
+    val password: String = "", // Store hashed
 
     @Column(nullable = false)
     val email: String,

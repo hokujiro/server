@@ -12,8 +12,8 @@ class TaskEntity(
     private val id: Long? = null,
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private val user: UserEntity,
+    @JoinColumn(name = "user_id")
+    var user: UserEntity? = null,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id", nullable = true)

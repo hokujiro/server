@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
+import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
@@ -27,18 +28,19 @@ class SecurityConfig(
     }
 
     @Bean
-    fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
-        http
-            .csrf { it.disable() } // Disable CSRF using the new API
-            .authorizeHttpRequests { requests ->
-                requests
-                    .requestMatchers("/api/auth/**").permitAll() // Allow unauthenticated access to auth endpoints
-                    .anyRequest().authenticated() // All other endpoints require authentication
+    fun securityFilterChain(
+        http: HttpSecurity,
+        jwtRequestFilter: JwtRequestFilter
+    ): SecurityFilterChain {
+        return http
+            .csrf { it.disable() }
+            .authorizeHttpRequests {
+                it.requestMatchers("/api/auth/**").permitAll()
+                    .anyRequest().authenticated()
             }
-            .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter::class.java) // Add JWT filter
-            .build() // Return the SecurityFilterChain object
-
-        return http.build()
+            .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
+            .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter::class.java)
+            .build() // ✅ Only call build ONCE, at the end
     }
 
     @Bean

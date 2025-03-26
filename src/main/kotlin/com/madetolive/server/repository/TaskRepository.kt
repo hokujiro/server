@@ -16,6 +16,6 @@ interface TaskRepository : JpaRepository<TaskEntity?, Long?> {
     fun findByUserIdAndCompleted(userId: Long, completed: Boolean): List<TaskEntity>
 
     // 3. Devuelve las tareas ordenadas por puntos de mayor a menor
-    @Query("SELECT t FROM Task t WHERE t.user.id = :userId ORDER BY t.points DESC")
+    @Query("SELECT t FROM TaskEntity t WHERE t.user.id = :userId ORDER BY t.points DESC")
     fun findTasksByUserIdOrderByPointsDesc(@Param("userId") userId: Long): List<TaskEntity>
 }

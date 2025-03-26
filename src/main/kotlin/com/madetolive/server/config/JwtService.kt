@@ -5,9 +5,10 @@ import com.auth0.jwt.algorithms.Algorithm
 import com.madetolive.server.entity.UserEntity
 import io.jsonwebtoken.Jwts
 import org.springframework.stereotype.Component
+import org.springframework.stereotype.Service
 import java.util.*
 
-@Component
+@Service
 class JwtService {
     private val secret = "your_secret_key" // Use environment variables for secrets
     private val expirationTime = 24 * 60 * 60 * 1000 // 1 day

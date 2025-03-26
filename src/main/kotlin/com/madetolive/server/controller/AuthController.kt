@@ -26,7 +26,7 @@ class AuthController(
 
     @PostMapping("/register")
     fun register(@RequestBody user: UserEntity): ResponseEntity<String> {
-        if (userRepository.findByUsername(user.username).isPresent) {
+        if (userRepository.findByUsername(user.username)!=null) {
             return ResponseEntity.badRequest().body("Username is already taken")
         }
 
@@ -62,7 +62,9 @@ class AuthController(
                 UserEntity(
                     username = verifiedUser.name,
                     email = verifiedUser.email,
-                    googleId = verifiedUser.googleId
+                    googleId = verifiedUser.googleId,
+                    password = "",
+                    roles = "ROLE_USER"
                 )
             )
 
@@ -70,8 +72,13 @@ class AuthController(
         val jwtToken = jwtService.generateToken(user)
 
         return ResponseEntity.ok(
-
-            (user.id, user.username, user.email, jwtToken))
+            AuthResponse(
+                userId = user.id,
+                name = user.username,
+                email = user.email,
+                token = jwtToken
+            )
+        )
     }
 
     data class GoogleAuthRequest(val idToken: String)
