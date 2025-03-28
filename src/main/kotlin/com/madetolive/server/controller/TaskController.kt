@@ -2,6 +2,7 @@ package com.madetolive.server.controller
 
 import org.springframework.http.ResponseEntity
 import com.madetolive.server.entity.TaskEntity
+import com.madetolive.server.entity.UserEntity
 import com.madetolive.server.repository.UserRepository
 import com.madetolive.server.server.TaskService
 import org.springframework.web.bind.annotation.*
@@ -19,11 +20,10 @@ class TaskController (
 ) {
 
     @GetMapping("/all")
-    fun getTasksForCurrentUser(principal: Principal): ResponseEntity<List<TaskEntity>> {
-        val username = principal.name // username extracted from JWT
-        val user = userRepository.findByUsername(username)
-            ?: return ResponseEntity.notFound().build()
-
+    fun getTasksForCurrentUser(
+        principal: Principal
+    ): ResponseEntity<List<TaskEntity>> {
+        val user = findUser(principal) ?: return ResponseEntity.notFound().build()
         val tasks = taskService.getTasksByUserId(user.id)
         return ResponseEntity.ok(tasks)
     }
@@ -33,15 +33,35 @@ class TaskController (
         principal: Principal,
         @RequestParam  date: Long
     ): ResponseEntity<List<TaskEntity>> {
-        val username = principal.name // username extracted from JWT
-        val user = userRepository.findByUsername(username)
-            ?: return ResponseEntity.notFound().build()
+        val user = findUser(principal) ?: return ResponseEntity.notFound().build()
         val localDate = Instant.ofEpochMilli(date)
             .atZone(ZoneId.systemDefault())
             .toLocalDate()
 
         val tasks = taskService.getTasksByUserIdAndDate(user.id, localDate)
         return ResponseEntity.ok(tasks)
+    }
+
+    @PostMapping("/add")
+    fun addTask(
+        principal: Principal,
+        @RequestBody request: CreateTaskRequest
+    ): ResponseEntity<TaskEntity> {
+        val user = findUser(principal) ?: return ResponseEntity.notFound().build()
+
+        val localDate = LocalDate.parse(request.date)
+
+        val task = TaskEntity(
+            title = request.title,
+            points = request.points,
+            completed = request.completed,
+            date = localDate,
+            user = user
+            // other fields can be defaulted or added as needed
+        )
+
+        val savedTask = taskService.addTaskForUser(user, task)
+        return ResponseEntity.ok(savedTask)
     }
 
     @GetMapping("/user/{userId}/completed")
@@ -53,5 +73,17 @@ class TaskController (
     fun getTasksSortedByPoints(@PathVariable userId: Long): List<TaskEntity> {
         return taskService.getTasksByUserIdSortedByPoints(userId)
     }
+
+    private fun findUser(principal: Principal): UserEntity? {
+        val username = principal.name
+        return userRepository.findByUsername(username)
+    }
+
+    data class CreateTaskRequest(
+        val title: String,
+        val points: Float,
+        val completed: Boolean,
+        val date: String
+    )
 
 }

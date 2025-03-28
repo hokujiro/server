@@ -1,5 +1,6 @@
 package com.madetolive.server.entity
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.persistence.*
 import java.time.LocalDate
 
@@ -8,37 +9,47 @@ import java.time.LocalDate
 @Table(name = "tasks")
 class TaskEntity(
     @Id
+    @JsonProperty("uid")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private val id: Long? = null,
+    val id: Long? = null,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     var user: UserEntity? = null,
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JsonProperty("project")
     @JoinColumn(name = "project_id", nullable = true)
-    private var project: ProjectEntity? = null,
+    var project: ProjectEntity? = null,
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JsonProperty("schema")
     @JoinColumn(name = "schema_id", nullable = true)
-    private var schema: TaskSchema? = null,
+    var schema: TaskSchema? = null,
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JsonProperty("bonus")
     @JoinColumn(name = "bonus_id", nullable = true)
-    private var bonus: Bonus? = null,
-
-    @Column(nullable = false)
-    private var title: String = "",
-
-    @Column(nullable = false)
-    private var points: Float = 0.0f,
-
-    @Column(nullable = false)
-    private var completed: Boolean = false,
+    var bonus: Bonus? = null,
 
     @Column(nullable = true)
-    private var date: LocalDate? = null
+    @JsonProperty("date")
+    var date: LocalDate? = null,
+
+    @Column(nullable = false)
+    @JsonProperty("title")
+    var title: String = "",
+
+    @Column(nullable = false)
+    @JsonProperty("points")
+    var points: Float = 0.0f,
+
+    @Column(nullable = false)
+    @JsonProperty("completed")
+    var completed: Boolean = false,
+
 ) {
+
 
     override fun equals(other: Any?): Boolean {
          if (this === other) return true
