@@ -49,14 +49,17 @@ class AuthController(
             UsernamePasswordAuthenticationToken(authRequest.username, authRequest.password)
         )
 
-        val userDetails = authentication.principal as UserEntity
-        val jwtToken = jwtService.generateToken(userDetails)
+        val springUser = authentication.principal as org.springframework.security.core.userdetails.User
+        val userEntity = userRepository.findByUsername(springUser.username)
+            ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()
+
+        val jwtToken = jwtService.generateToken(userEntity)
 
         return ResponseEntity.ok(
             AuthResponse(
-                userId = userDetails.id,
-                name = userDetails.username,
-                email = userDetails.email,
+                userId = userEntity.id,
+                name = userEntity.username,
+                email = userEntity.email,
                 token = jwtToken
             )
         )

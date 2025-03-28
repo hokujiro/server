@@ -3,8 +3,6 @@ package com.madetolive.server.config
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.madetolive.server.entity.UserEntity
-import io.jsonwebtoken.Jwts
-import org.springframework.stereotype.Component
 import org.springframework.stereotype.Service
 import java.util.*
 
@@ -15,7 +13,7 @@ class JwtService {
 
     fun generateToken(user: UserEntity): String {
         return JWT.create()
-            .withSubject(user.email)
+            .withSubject(user.username)
             .withClaim("userId", user.id)
             .withClaim("name", user.username)
             .withIssuedAt(Date())
@@ -24,14 +22,18 @@ class JwtService {
     }
 
     fun extractUsername(token: String): String {
-        return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).body.subject
+        return JWT.require(Algorithm.HMAC256(secret))
+            .build()
+            .verify(token)
+            .subject
     }
 
     fun validateToken(token: String, username: String): Boolean {
         return extractUsername(token) == username && !isTokenExpired(token)
     }
 
-    private fun isTokenExpired(token: String): Boolean {
-        return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).body.expiration.before(Date())
+    fun isTokenExpired(token: String): Boolean {
+        val decoded = JWT.require(Algorithm.HMAC256(secret)).build().verify(token)
+        return decoded.expiresAt.before(Date())
     }
 }

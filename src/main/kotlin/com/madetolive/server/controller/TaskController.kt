@@ -1,30 +1,47 @@
 package com.madetolive.server.controller
 
+import org.springframework.http.ResponseEntity
 import com.madetolive.server.entity.TaskEntity
+import com.madetolive.server.repository.UserRepository
 import com.madetolive.server.server.TaskService
 import org.springframework.web.bind.annotation.*
+import java.security.Principal
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 
 
 @RestController
 @RequestMapping("/api/tasks")
 class TaskController (
-    val taskService: TaskService
+    val taskService: TaskService,
+    val userRepository: UserRepository,
 ) {
-/*    @GetMapping("/completed/{userId}")
-    fun getCompletedTasks(
-        @PathVariable userId: Long?,
-        @RequestParam startDate: String?,
-        @RequestParam endDate: String?
-    ): List<TaskRegister> {
-        val start = LocalDateTime.parse(startDate)
-        val end = LocalDateTime.parse(endDate)
 
-        return taskRegisterService.getCompletedTasks(userId, start, end)
-    }*/
+    @GetMapping("/all")
+    fun getTasksForCurrentUser(principal: Principal): ResponseEntity<List<TaskEntity>> {
+        val username = principal.name // username extracted from JWT
+        val user = userRepository.findByUsername(username)
+            ?: return ResponseEntity.notFound().build()
 
-    @GetMapping("/user/{userId}")
-    fun getTasksByUserId(@PathVariable userId: Long): List<TaskEntity> {
-        return taskService.getTasksByUserId(userId)
+        val tasks = taskService.getTasksByUserId(user.id)
+        return ResponseEntity.ok(tasks)
+    }
+
+    @GetMapping("/by-date")
+    fun getTasksByDate(
+        principal: Principal,
+        @RequestParam  date: Long
+    ): ResponseEntity<List<TaskEntity>> {
+        val username = principal.name // username extracted from JWT
+        val user = userRepository.findByUsername(username)
+            ?: return ResponseEntity.notFound().build()
+        val localDate = Instant.ofEpochMilli(date)
+            .atZone(ZoneId.systemDefault())
+            .toLocalDate()
+
+        val tasks = taskService.getTasksByUserIdAndDate(user.id, localDate)
+        return ResponseEntity.ok(tasks)
     }
 
     @GetMapping("/user/{userId}/completed")
