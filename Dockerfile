@@ -1,12 +1,11 @@
-# Use the official OpenJDK 17 image
-FROM openjdk:17-jdk-slim
-
-# Set a working directory
+# Stage 1: Build
+FROM gradle:8.5-jdk17 AS build
 WORKDIR /app
+COPY . .
+RUN gradle build -x test
 
-# Copy the JAR file built by Gradle
-ARG JAR_FILE=build/libs/*.jar
-COPY ${JAR_FILE} app.jar
-
-# Run the JAR
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+# Stage 2: Run
+FROM openjdk:17-jdk-slim
+WORKDIR /app
+COPY --from=build /app/build/libs/server-0.0.1-SNAPSHOT.jar app.jar
+ENTRYPOINT ["java", "-jar", "app.jar"]
