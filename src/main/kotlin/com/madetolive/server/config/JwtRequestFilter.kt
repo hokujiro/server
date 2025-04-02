@@ -39,7 +39,7 @@ class JwtRequestFilter(
                 val username = jwtUtil.extractUsername(jwtToken)
 
                 // Check if the user is not already authenticated
-                if (username != null && SecurityContextHolder.getContext().authentication == null) {
+                if (SecurityContextHolder.getContext().authentication == null) {
 
                     // Load user details
                     val userDetails: UserDetails = userService.loadUserByUsername(username)
