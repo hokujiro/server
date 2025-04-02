@@ -8,7 +8,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -60,37 +59,6 @@ class AuthController(
                 userId = userEntity.id,
                 name = userEntity.username,
                 email = userEntity.email,
-                token = jwtToken
-            )
-        )
-    }
-
-    @PostMapping("/google-login")
-    fun googleLogin(@RequestBody request: GoogleAuthRequest): ResponseEntity<AuthResponse> {
-        val verifiedUser = GoogleTokenVerifier.verify(request.idToken)
-            ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null)
-
-        // Check if user exists in database
-        val user = userRepository.findByGoogleId(verifiedUser.googleId)
-            ?: userRepository.findByEmail(verifiedUser.email) // Check email fallback
-            ?: userRepository.save(
-                UserEntity(
-                    username = verifiedUser.name,
-                    email = verifiedUser.email,
-                    googleId = verifiedUser.googleId,
-                    password = "",
-                    roles = "ROLE_USER"
-                )
-            )
-
-        // Generate JWT token for authentication
-        val jwtToken = jwtService.generateToken(user)
-
-        return ResponseEntity.ok(
-            AuthResponse(
-                userId = user.id,
-                name = user.username,
-                email = user.email,
                 token = jwtToken
             )
         )

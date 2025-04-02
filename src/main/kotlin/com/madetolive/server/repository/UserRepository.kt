@@ -8,6 +8,5 @@ import java.util.Optional
 @Repository
 interface UserRepository : JpaRepository<UserEntity, Long> {
     fun findByUsername(username: String): UserEntity?
-    fun findByGoogleId(googleId: String): UserEntity?
     fun findByEmail(email: String): UserEntity?
 }

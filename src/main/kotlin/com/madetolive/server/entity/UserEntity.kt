@@ -4,7 +4,7 @@ import jakarta.persistence.*
 
 @Entity
 @Table(name = "users")
-data class UserEntity (
+data class UserEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) val id: Long = 0,
 
@@ -16,9 +16,6 @@ data class UserEntity (
 
     @Column(nullable = true)
     val email: String = "",
-
-    @Column(unique = true, nullable = true)
-    val googleId: String?,
 
     @Column(nullable = true)
     val roles: String = "ROLE_USER", // e.g., "ROLE_USER,ROLE_ADMIN"
@@ -33,4 +30,20 @@ data class UserEntity (
 
     @OneToMany(mappedBy = "user", cascade = [CascadeType.ALL], orphanRemoval = true)
     private val projects: List<ProjectEntity>? = null
-)
+
+
+) {
+    fun addPoints(points: Float) {
+        totalPoints += points
+    }
+
+    fun subtractPoints(points: Float) {
+        totalPoints -= points
+    }
+
+    fun getTotalPoints(): Float = totalPoints
+
+    fun setTotalPoints(points: Float) {
+        totalPoints = points
+    }
+}

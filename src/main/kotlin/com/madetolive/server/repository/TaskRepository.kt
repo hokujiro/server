@@ -13,8 +13,13 @@ interface TaskRepository : JpaRepository<TaskEntity?, Long?> {
     // 1. Devolver las tareas por userId
     fun findByUserId(userId: Long): List<TaskEntity>
 
+    // 1. Devolver la tareas por Id
+    //fun findById(taskId: Long): TaskEntity
+
+    //fun updateTaskForUser(user: UserEntity, task:TaskEntity)
+
     // 2. Devuelve las tareas completadas por userId
-    fun findByUserIdAndCompleted(userId: Long, completed: Boolean): List<TaskEntity>
+    fun findByUserIdAndChecked(userId: Long, checked: Boolean): List<TaskEntity>
 
     // 3. Devuelve las tareas ordenadas por puntos de mayor a menor
     @Query("SELECT t FROM TaskEntity t WHERE t.user.id = :userId ORDER BY t.points DESC")

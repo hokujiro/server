@@ -44,15 +44,14 @@ class TaskEntity(
     @JsonProperty("points")
     var points: Float = 0.0f,
 
-    @Column(nullable = false)
-    @JsonProperty("completed")
-    var completed: Boolean = false,
+    @Column(nullable = true)
+    var checked: Boolean = false
 
-) {
+    ) {
 
 
     override fun equals(other: Any?): Boolean {
-         if (this === other) return true
+        if (this === other) return true
         if (other == null || javaClass != other.javaClass) return false
         other as TaskEntity
         return id != null && id == other.id
@@ -63,7 +62,31 @@ class TaskEntity(
     }
 
     override fun toString(): String {
-        return "Task(id=$id, title='$title', points=$points, completed=$completed, date=$date)"
+        return "Task(id=$id, title='$title', points=$points, completed=$checked, date=$date)"
     }
 
+    open fun copy(
+        id: Long? = this.id,
+        user: UserEntity? = this.user,
+        project: ProjectEntity? = this.project,
+        schema: TaskSchema? = this.schema,
+        bonus: Bonus? = this.bonus,
+        date: LocalDate? = this.date,
+        title: String = this.title,
+        points: Float = this.points,
+        checked: Boolean = this.checked
+    ): TaskEntity {
+        return TaskEntity(
+            id = id,
+            user = user,
+            project = project,
+            schema = schema,
+            bonus = bonus,
+            date = date,
+            title = title,
+            points = points,
+            checked = checked
+        )
     }
+
+}

@@ -24,7 +24,7 @@ class TaskController (
         principal: Principal
     ): ResponseEntity<List<TaskEntity>> {
         val user = findUser(principal) ?: return ResponseEntity.notFound().build()
-        val tasks = taskService.getTasksByUserId(user.id)
+        val tasks = taskService.getTasksListByUserId(user.id)
         return ResponseEntity.ok(tasks)
     }
 
@@ -54,7 +54,7 @@ class TaskController (
         val task = TaskEntity(
             title = request.title,
             points = request.points,
-            completed = request.completed,
+            checked = request.checked,
             date = localDate,
             user = user
             // other fields can be defaulted or added as needed
@@ -62,6 +62,35 @@ class TaskController (
 
         val savedTask = taskService.addTaskForUser(user, task)
         return ResponseEntity.ok(savedTask)
+    }
+
+    @PutMapping("/update/{id}")
+    fun updateTask(
+        principal: Principal,
+        @PathVariable id: Long,
+        @RequestBody request: CreateTaskRequest
+    ): ResponseEntity<TaskEntity> {
+        val user = findUser(principal) ?: return ResponseEntity.status(401).build()
+
+        val updatedTask = taskService.updateTaskForUser(
+            user = user,
+            taskId = id,
+            request = request
+        ) ?: return ResponseEntity.notFound().build()
+
+        return ResponseEntity.ok(updatedTask)
+    }
+
+    @DeleteMapping("/delete/{id}")
+    fun deleteTask(
+        principal: Principal,
+        @PathVariable id: Long
+    ): ResponseEntity<Void> {
+        val user = findUser(principal) ?: return ResponseEntity.status(401).build()
+
+        val deleted = taskService.deleteTaskForUser(user, id)
+        return if (deleted) ResponseEntity.noContent().build()
+        else ResponseEntity.notFound().build()
     }
 
     @GetMapping("/user/{userId}/completed")
@@ -82,7 +111,7 @@ class TaskController (
     data class CreateTaskRequest(
         val title: String,
         val points: Float,
-        val completed: Boolean,
+        val checked: Boolean,
         val date: String
     )
 
