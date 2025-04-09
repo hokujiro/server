@@ -1,5 +1,6 @@
 package com.madetolive.server.entity
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.persistence.*
 
 
@@ -7,6 +8,7 @@ import jakarta.persistence.*
 @Table(name = "projects")
 class ProjectEntity (
     @Id
+    @JsonProperty("uid")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
 
@@ -32,8 +34,20 @@ class ProjectEntity (
     var title: String = "",
 
     @Column(nullable = true)
+    var subtitle: String? = null,
+
+    @Column(nullable = true)
     var description: String? = null,
 
     @Column(nullable = true)
-    var color: String? = null
-)
+    var color: String? = null,
+
+    @Column(nullable = true)
+    var icon: String? = null
+
+
+) {
+    override fun toString(): String {
+        return "Project(id=$id, title='$title', description=$description, color=$color, icon =$icon)"
+    }
+}

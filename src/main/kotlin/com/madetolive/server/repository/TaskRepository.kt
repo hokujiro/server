@@ -26,4 +26,5 @@ interface TaskRepository : JpaRepository<TaskEntity?, Long?> {
     fun findTasksByUserIdOrderByPointsDesc(@Param("userId") userId: Long): List<TaskEntity>
 
     fun findByUserIdAndDate(userId: Long, @Param("date") date: LocalDate): List<TaskEntity>
+
 }

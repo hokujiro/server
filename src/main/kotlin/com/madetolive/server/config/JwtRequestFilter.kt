@@ -1,13 +1,13 @@
 package com.madetolive.server.config
 
+import com.madetolive.server.JwtService
 import com.madetolive.server.server.UserService
-import io.jsonwebtoken.JwtException
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.core.userdetails.UserDetails
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
 
@@ -18,8 +18,8 @@ import org.springframework.web.filter.OncePerRequestFilter
  */
 @Component
 class JwtRequestFilter(
-    private val jwtUtil: JwtService,  // Utility to validate and parse JWT
-    private val userService: UserService // To load user details by username
+    private val jwtUtil: JwtService,
+    private val userService: UserService
 ) : OncePerRequestFilter() {
 
     override fun doFilterInternal(
@@ -27,39 +27,52 @@ class JwtRequestFilter(
         response: HttpServletResponse,
         filterChain: FilterChain
     ) {
-        // Extract the "Authorization" header
         val authorizationHeader = request.getHeader("Authorization")
 
-        // Check if the header contains a Bearer token
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             val jwtToken = authorizationHeader.substring(7)
 
             try {
-                // Validate and extract username from the token
                 val username = jwtUtil.extractUsername(jwtToken)
 
-                // Check if the user is not already authenticated
-                if (SecurityContextHolder.getContext().authentication == null) {
+                // Only authenticate if no one is already authenticated
+                if (username != null && SecurityContextHolder.getContext().authentication == null) {
+                    val userDetails = userService.loadUserByUsername(username)
 
-                    // Load user details
-                    val userDetails: UserDetails = userService.loadUserByUsername(username)
-
-                    // Validate token with the username
                     if (jwtUtil.validateToken(jwtToken, userDetails.username)) {
-                        // Create an authentication object with user details
                         val authentication = UsernamePasswordAuthenticationToken(
                             userDetails, null, userDetails.authorities
                         )
-                        // Set the authentication in the SecurityContext
+                        authentication.details = WebAuthenticationDetailsSource().buildDetails(request)
+
                         SecurityContextHolder.getContext().authentication = authentication
+
+                        println("✅ JWT Filter: Authenticated $username and set security context")
+                    } else {
+                        println("❌ JWT Filter: Token validation failed for $username")
+                        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT Token")
+                        return
                     }
                 }
-            } catch (e: JwtException) {
+
+            } catch (e: com.auth0.jwt.exceptions.TokenExpiredException) {
+                println("❌ JWT Filter: Token expired")
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token has expired")
+                return
+            } catch (e: com.auth0.jwt.exceptions.JWTVerificationException) {
+                println("❌ JWT Filter: Invalid JWT")
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT Token")
                 return
+            } catch (e: Exception) {
+                println("❌ JWT Filter: Unexpected error: ${e.message}")
+                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Unexpected authentication error")
+                return
             }
+        } else {
+            println("ℹ️ JWT Filter: No Authorization header or doesn't start with Bearer")
         }
-        // Continue the filter chain
+
+        // Proceed with the rest of the filter chain
         filterChain.doFilter(request, response)
     }
 }

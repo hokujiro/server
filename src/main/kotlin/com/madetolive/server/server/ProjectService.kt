@@ -12,14 +12,17 @@ class ProjectService(
     private val projectRepository: ProjectRepository
 ) {
 
-    //TODO
     fun getProjectsByUserId(userId: Long): List<ProjectEntity> {
         return projectRepository.findByUserId(userId)
     }
 
-    //TODO
     fun addProjectForUser(user: UserEntity, project: ProjectEntity): ProjectEntity {
         project.user = user // 🔥 THIS is crucial
         return projectRepository.save(project)
+    }
+
+    fun getProjectById(id: Long): ProjectEntity {
+        return projectRepository.findById(id)
+            .orElseThrow { NoSuchElementException("Project with ID $id not found") }
     }
 }

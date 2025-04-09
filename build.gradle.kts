@@ -35,6 +35,8 @@ dependencies {
 
 	// Spring Security
 	implementation ("org.springframework.boot:spring-boot-starter-security")
+	implementation("io.github.cdimascio:dotenv-kotlin:6.4.1") // or latest version
+
 
 	//Google
 	implementation("com.google.api-client:google-api-client:1.35.0") // Google Token Verification

@@ -36,7 +36,11 @@ class SecurityConfig(
             .csrf { it.disable() }
             .authorizeHttpRequests {
                 it.requestMatchers("/api/auth/**").permitAll()
-                    .anyRequest().authenticated()
+                it.requestMatchers("/error").permitAll()
+                it.requestMatchers("/api/tasks/**").authenticated()
+                it.requestMatchers("/api/user/**").authenticated()
+                it.requestMatchers("/api/projects/**").authenticated()
+                it.anyRequest().denyAll()
             }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter::class.java)

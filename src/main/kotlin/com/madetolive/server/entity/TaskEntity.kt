@@ -36,6 +36,10 @@ class TaskEntity(
     @JsonProperty("date")
     var date: LocalDate? = null,
 
+    @Column(nullable = true)
+    @JsonProperty("finishingDate")
+    var finishingDate: LocalDate? = null,
+
     @Column(nullable = false)
     @JsonProperty("title")
     var title: String = "",
@@ -65,7 +69,7 @@ class TaskEntity(
         return "Task(id=$id, title='$title', points=$points, completed=$checked, date=$date)"
     }
 
-    open fun copy(
+    fun copy(
         id: Long? = this.id,
         user: UserEntity? = this.user,
         project: ProjectEntity? = this.project,
@@ -74,7 +78,8 @@ class TaskEntity(
         date: LocalDate? = this.date,
         title: String = this.title,
         points: Float = this.points,
-        checked: Boolean = this.checked
+        checked: Boolean = this.checked,
+        finishingDate: LocalDate? = this.finishingDate
     ): TaskEntity {
         return TaskEntity(
             id = id,
@@ -85,7 +90,8 @@ class TaskEntity(
             date = date,
             title = title,
             points = points,
-            checked = checked
+            checked = checked,
+            finishingDate = finishingDate
         )
     }
 

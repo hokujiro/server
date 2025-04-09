@@ -3,15 +3,12 @@ package com.madetolive.server.controller
 import com.madetolive.server.entity.ProjectEntity
 import com.madetolive.server.entity.TaskEntity
 import com.madetolive.server.entity.UserEntity
+import com.madetolive.server.entity.toDto
 import com.madetolive.server.repository.UserRepository
 import com.madetolive.server.server.ProjectService
-import com.madetolive.server.server.TaskService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.security.Principal
-import java.time.Instant
-import java.time.LocalDate
-import java.time.ZoneId
 
 @RestController
 @RequestMapping("/api/projects")
@@ -25,8 +22,8 @@ class ProjectController (
         principal: Principal
     ): ResponseEntity<List<ProjectEntity>> {
         val user = findUser(principal) ?: return ResponseEntity.notFound().build()
-        val tasks =  projectService.getProjectsByUserId(user.id)
-        return ResponseEntity.ok(tasks)
+        val projects =  projectService.getProjectsByUserId(user.id)
+        return ResponseEntity.ok(projects)
     }
 
     @PostMapping("/add")
@@ -40,12 +37,19 @@ class ProjectController (
         val project = ProjectEntity(
             title = request.title,
             user = user,
-            color = request.color
-            // other fields can be defaulted or added as needed
+            color = request.color,
+            icon = request.icon,
+            tasks = request.tasksList
         )
 
         val savedTask = projectService.addProjectForUser(user, project)
         return ResponseEntity.ok(savedTask)
+    }
+
+    @GetMapping("/by-id")
+    fun getProjectById(@RequestParam id: Long): ResponseEntity<ProjectDto> {
+        val project = projectService.getProjectById(id)
+        return ResponseEntity.ok(project.toDto())
     }
 
     private fun findUser(principal: Principal): UserEntity? {
@@ -55,7 +59,24 @@ class ProjectController (
 
     data class CreateProjectRequest(
         val title: String,
-        val color: String
+        val color: String?,
+        val icon: String?,
+        val tasksList: List<TaskEntity>?
+    )
+
+    data class ProjectDto(
+        val id: Long,
+        val title: String,
+        val subtitle: String?,
+        val color: String?,
+        val icon: String?,
+        val tasks: List<TaskDto>
+    )
+
+    data class TaskDto(
+        val id: Long,
+        val title: String,
+        val checked: Boolean
     )
 
 }

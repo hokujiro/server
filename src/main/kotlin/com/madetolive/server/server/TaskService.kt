@@ -69,6 +69,16 @@ class TaskService(
         return true
     }
 
+    suspend fun getDailyPointsSummary(userId: Long, date: LocalDate): TaskController.DailyPointsSummary {
+        val tasks = taskRepository.findByUserIdAndDate(userId, date)
+
+        val total = tasks.map { it.points }.sum()
+        val positive = tasks.filter { it.points > 0 }.map { it.points }.sum()
+        val negative = tasks.filter { it.points < 0 }.map { it.points }.sum()
+
+        return TaskController.DailyPointsSummary(total, positive, negative)
+    }
+
     //TODO
     fun getCompletedTasksByUserId(userId: Long): List<TaskEntity> {
         return taskRepository.findByUserIdAndChecked(userId, true)

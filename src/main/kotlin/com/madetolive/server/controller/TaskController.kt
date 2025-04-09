@@ -93,6 +93,20 @@ class TaskController (
         else ResponseEntity.notFound().build()
     }
 
+    @GetMapping("/points-summary")
+    suspend fun getPointsSummary(
+        principal: Principal,
+        @RequestParam("date") date: Long
+    ): ResponseEntity<DailyPointsSummary> {
+        val user = findUser(principal) ?: return ResponseEntity.status(401).build()
+        val localDate = Instant.ofEpochMilli(date)
+            .atZone(ZoneId.systemDefault())
+            .toLocalDate()
+        val summary = taskService.getDailyPointsSummary(user.id, localDate)
+        return ResponseEntity.ok(summary)
+    }
+
+
     @GetMapping("/user/{userId}/completed")
     fun getCompletedTasksByUserId(@PathVariable userId: Long): List<TaskEntity> {
         return taskService.getCompletedTasksByUserId(userId)
@@ -113,6 +127,12 @@ class TaskController (
         val points: Float,
         val checked: Boolean,
         val date: String
+    )
+
+    data class DailyPointsSummary(
+        val total: Float,
+        val positive: Float,
+        val negative: Float
     )
 
 }
