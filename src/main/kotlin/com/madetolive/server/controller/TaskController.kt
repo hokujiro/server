@@ -3,6 +3,11 @@ package com.madetolive.server.controller
 import org.springframework.http.ResponseEntity
 import com.madetolive.server.entity.TaskEntity
 import com.madetolive.server.entity.UserEntity
+import com.madetolive.server.model.CreateTaskRequest
+import com.madetolive.server.model.DailyPointsSummary
+import com.madetolive.server.model.TaskDto
+import com.madetolive.server.model.toDto
+import com.madetolive.server.repository.ProjectRepository
 import com.madetolive.server.repository.UserRepository
 import com.madetolive.server.server.TaskService
 import org.springframework.web.bind.annotation.*
@@ -17,38 +22,36 @@ import java.time.ZoneId
 class TaskController (
     val taskService: TaskService,
     val userRepository: UserRepository,
+    val projectRepository: ProjectRepository,
 ) {
 
     @GetMapping("/all")
-    fun getTasksForCurrentUser(
-        principal: Principal
-    ): ResponseEntity<List<TaskEntity>> {
+    fun getTasksForCurrentUser(principal: Principal): ResponseEntity<List<TaskDto>> {
         val user = findUser(principal) ?: return ResponseEntity.notFound().build()
         val tasks = taskService.getTasksListByUserId(user.id)
-        return ResponseEntity.ok(tasks)
+        return ResponseEntity.ok(tasks.map { it.toDto() })
     }
 
     @GetMapping("/by-date")
     fun getTasksByDate(
         principal: Principal,
         @RequestParam  date: Long
-    ): ResponseEntity<List<TaskEntity>> {
+    ): ResponseEntity<List<TaskDto>> {
         val user = findUser(principal) ?: return ResponseEntity.notFound().build()
         val localDate = Instant.ofEpochMilli(date)
             .atZone(ZoneId.systemDefault())
             .toLocalDate()
 
         val tasks = taskService.getTasksByUserIdAndDate(user.id, localDate)
-        return ResponseEntity.ok(tasks)
+        return ResponseEntity.ok(tasks.map { it.toDto() })
     }
 
     @PostMapping("/add")
     fun addTask(
         principal: Principal,
         @RequestBody request: CreateTaskRequest
-    ): ResponseEntity<TaskEntity> {
+    ): ResponseEntity<TaskDto> {
         val user = findUser(principal) ?: return ResponseEntity.notFound().build()
-
         val localDate = LocalDate.parse(request.date)
 
         val task = TaskEntity(
@@ -57,28 +60,34 @@ class TaskController (
             checked = request.checked,
             date = localDate,
             user = user
-            // other fields can be defaulted or added as needed
         )
 
+        request.project.let { projectModel ->
+            val project = projectRepository.findById(projectModel.id.toLong()).orElse(null)
+            task.project = project
+        }
+
         val savedTask = taskService.addTaskForUser(user, task)
-        return ResponseEntity.ok(savedTask)
+        return ResponseEntity.ok(savedTask.toDto())
     }
+
 
     @PutMapping("/update/{id}")
     fun updateTask(
         principal: Principal,
         @PathVariable id: Long,
         @RequestBody request: CreateTaskRequest
-    ): ResponseEntity<TaskEntity> {
+    ): ResponseEntity<TaskDto> {
         val user = findUser(principal) ?: return ResponseEntity.status(401).build()
 
         val updatedTask = taskService.updateTaskForUser(
-            user = user,
-            taskId = id,
-            request = request
-        ) ?: return ResponseEntity.notFound().build()
+            user,
+            id,
+            request
+        )
+            ?: return ResponseEntity.notFound().build()
 
-        return ResponseEntity.ok(updatedTask)
+        return ResponseEntity.ok(updatedTask.toDto())
     }
 
     @DeleteMapping("/delete/{id}")
@@ -93,15 +102,15 @@ class TaskController (
         else ResponseEntity.notFound().build()
     }
 
+
+
     @GetMapping("/points-summary")
     suspend fun getPointsSummary(
         principal: Principal,
         @RequestParam("date") date: Long
     ): ResponseEntity<DailyPointsSummary> {
         val user = findUser(principal) ?: return ResponseEntity.status(401).build()
-        val localDate = Instant.ofEpochMilli(date)
-            .atZone(ZoneId.systemDefault())
-            .toLocalDate()
+        val localDate = Instant.ofEpochMilli(date).atZone(ZoneId.systemDefault()).toLocalDate()
         val summary = taskService.getDailyPointsSummary(user.id, localDate)
         return ResponseEntity.ok(summary)
     }
@@ -121,18 +130,5 @@ class TaskController (
         val username = principal.name
         return userRepository.findByUsername(username)
     }
-
-    data class CreateTaskRequest(
-        val title: String,
-        val points: Float,
-        val checked: Boolean,
-        val date: String
-    )
-
-    data class DailyPointsSummary(
-        val total: Float,
-        val positive: Float,
-        val negative: Float
-    )
 
 }

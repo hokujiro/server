@@ -1,5 +1,6 @@
 package com.madetolive.server.entity
 
+import com.fasterxml.jackson.annotation.JsonManagedReference
 import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.persistence.*
 
@@ -21,6 +22,7 @@ class ProjectEntity (
         mappedBy = "project",
         cascade = [CascadeType.REFRESH, CascadeType.PERSIST, CascadeType.MERGE],
         orphanRemoval = false)
+    @JsonManagedReference
     var tasks: List<TaskEntity>? = null,
 
     @OneToMany(

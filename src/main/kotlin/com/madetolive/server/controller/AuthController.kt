@@ -89,6 +89,7 @@ class AuthController(
         return try {
             val username = jwtService.extractUsername(request.refreshToken)
             val userDetails = userRepository.findByUsername(username)
+            println("El token en cuestion ${request.refreshToken}")
 
             if (userDetails == null || !jwtService.validateToken(request.refreshToken, userDetails.username)) {
                 ResponseEntity.status(HttpStatus.UNAUTHORIZED).build()

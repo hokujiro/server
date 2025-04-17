@@ -1,5 +1,7 @@
 package com.madetolive.server.entity
 
+import com.fasterxml.jackson.annotation.JsonBackReference
+import com.fasterxml.jackson.annotation.JsonManagedReference
 import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.persistence.*
 import java.time.LocalDate
@@ -20,6 +22,7 @@ class TaskEntity(
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonProperty("project")
     @JoinColumn(name = "project_id", nullable = true)
+    @JsonBackReference
     var project: ProjectEntity? = null,
 
     @ManyToOne(fetch = FetchType.LAZY)

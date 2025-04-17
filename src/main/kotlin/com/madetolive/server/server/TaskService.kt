@@ -3,6 +3,8 @@ package com.madetolive.server.server
 import com.madetolive.server.controller.TaskController
 import com.madetolive.server.entity.TaskEntity
 import com.madetolive.server.entity.UserEntity
+import com.madetolive.server.model.CreateTaskRequest
+import com.madetolive.server.model.DailyPointsSummary
 import com.madetolive.server.repository.TaskRepository
 import com.madetolive.server.repository.UserRepository
 import org.springframework.stereotype.Service
@@ -24,7 +26,7 @@ class TaskService(
         return taskRepository.findById(taskId)
     }
 
-    fun updateTaskForUser(user: UserEntity, taskId: Long, request: TaskController.CreateTaskRequest): TaskEntity? {
+    fun updateTaskForUser(user: UserEntity, taskId: Long, request: CreateTaskRequest): TaskEntity? {
         val existing = taskRepository.findById(taskId).orElse(null) ?: return null
         if (existing.user?.id != user.id) return null
 
@@ -69,14 +71,14 @@ class TaskService(
         return true
     }
 
-    suspend fun getDailyPointsSummary(userId: Long, date: LocalDate): TaskController.DailyPointsSummary {
+    suspend fun getDailyPointsSummary(userId: Long, date: LocalDate): DailyPointsSummary {
         val tasks = taskRepository.findByUserIdAndDate(userId, date)
 
         val total = tasks.map { it.points }.sum()
         val positive = tasks.filter { it.points > 0 }.map { it.points }.sum()
         val negative = tasks.filter { it.points < 0 }.map { it.points }.sum()
 
-        return TaskController.DailyPointsSummary(total, positive, negative)
+        return DailyPointsSummary(total, positive, negative)
     }
 
     //TODO
