@@ -1,12 +1,10 @@
 package com.madetolive.server.controller
 
+import com.madetolive.server.entity.FrameEntity
 import org.springframework.http.ResponseEntity
 import com.madetolive.server.entity.TaskEntity
 import com.madetolive.server.entity.UserEntity
-import com.madetolive.server.model.CreateTaskRequest
-import com.madetolive.server.model.DailyPointsSummary
-import com.madetolive.server.model.TaskDto
-import com.madetolive.server.model.toDto
+import com.madetolive.server.model.*
 import com.madetolive.server.repository.ProjectRepository
 import com.madetolive.server.repository.UserRepository
 import com.madetolive.server.server.TaskService
@@ -62,8 +60,8 @@ class TaskController (
             user = user
         )
 
-        request.project.let { projectModel ->
-            val project = projectRepository.findById(projectModel.id.toLong()).orElse(null)
+        request.project.id.takeIf { it.isNotBlank() && it.all { char -> char.isDigit() } }?.toLongOrNull()?.let { projectId ->
+            val project = projectRepository.findById(projectId).orElse(null)
             task.project = project
         }
 
@@ -98,6 +96,46 @@ class TaskController (
         val user = findUser(principal) ?: return ResponseEntity.status(401).build()
 
         val deleted = taskService.deleteTaskForUser(user, id)
+        return if (deleted) ResponseEntity.noContent().build()
+        else ResponseEntity.notFound().build()
+    }
+
+    @PostMapping("/add-list")
+    fun addTaskList(
+        principal: Principal,
+        @RequestBody requests: List<CreateTaskRequest>
+    ): ResponseEntity<List<TaskDto>> {
+        val user = findUser(principal) ?: return ResponseEntity.status(401).build()
+
+        val tasks = requests.map { request ->
+            TaskEntity(
+                title = request.title,
+                points = request.points,
+                checked = request.checked,
+                date = LocalDate.parse(request.date),
+                user = user
+            ).also { task ->
+                request.project.id.takeIf { it.isNotBlank() && it.all { char -> char.isDigit() } }
+                    ?.toLongOrNull()
+                    ?.let { projectId ->
+                        val project = projectRepository.findById(projectId).orElse(null)
+                       task.project = project
+                    }
+            }
+        }
+
+        val savedTasks = taskService.addTasksForUser(user, tasks)
+        return ResponseEntity.ok(savedTasks.map { it.toDto() })
+    }
+
+    @DeleteMapping("/delete-list")
+    fun deleteTasks(
+        principal: Principal,
+        @RequestBody taskIds: List<Long>
+    ): ResponseEntity<Void> {
+        val user = findUser(principal) ?: return ResponseEntity.status(401).build()
+
+        val deleted = taskService.deleteTasksForUser(user, taskIds)
         return if (deleted) ResponseEntity.noContent().build()
         else ResponseEntity.notFound().build()
     }

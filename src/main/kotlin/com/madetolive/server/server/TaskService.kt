@@ -1,10 +1,12 @@
 package com.madetolive.server.server
 
 import com.madetolive.server.controller.TaskController
+import com.madetolive.server.entity.FrameEntity
 import com.madetolive.server.entity.TaskEntity
 import com.madetolive.server.entity.UserEntity
 import com.madetolive.server.model.CreateTaskRequest
 import com.madetolive.server.model.DailyPointsSummary
+import com.madetolive.server.repository.FrameRepository
 import com.madetolive.server.repository.TaskRepository
 import com.madetolive.server.repository.UserRepository
 import org.springframework.stereotype.Service
@@ -14,16 +16,12 @@ import java.util.*
 @Service
 class TaskService(
     private val taskRepository: TaskRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val frameRepository: FrameRepository
 ) {
 
-    //Working
     fun getTasksListByUserId(userId: Long): List<TaskEntity> {
         return taskRepository.findByUserId(userId)
-    }
-    //Working
-    fun getTaskById(taskId: Long): Optional<TaskEntity?> {
-        return taskRepository.findById(taskId)
     }
 
     fun updateTaskForUser(user: UserEntity, taskId: Long, request: CreateTaskRequest): TaskEntity? {
@@ -39,7 +37,6 @@ class TaskService(
             checked = request.checked,
             date = LocalDate.parse(request.date),
             project = existing.project,
-            schema = existing.schema,
             bonus = existing.bonus
         )
 
@@ -71,6 +68,19 @@ class TaskService(
         return true
     }
 
+    fun addTasksForUser(user: UserEntity, tasks: List<TaskEntity>): List<TaskEntity> {
+        return taskRepository.saveAll(tasks)
+    }
+
+    fun deleteTasksForUser(user: UserEntity, taskIds: List<Long>): Boolean {
+        val tasks = taskRepository.findAllById(taskIds)
+        val userOwnsAll = tasks.all { it?.user?.id == user.id }
+        if (!userOwnsAll) return false
+
+        taskRepository.deleteAll(tasks)
+        return true
+    }
+
     suspend fun getDailyPointsSummary(userId: Long, date: LocalDate): DailyPointsSummary {
         val tasks = taskRepository.findByUserIdAndDate(userId, date)
 
@@ -81,20 +91,20 @@ class TaskService(
         return DailyPointsSummary(total, positive, negative)
     }
 
-    //TODO
+
     fun getCompletedTasksByUserId(userId: Long): List<TaskEntity> {
         return taskRepository.findByUserIdAndChecked(userId, true)
     }
-    //TODO
+
     fun getTasksByUserIdSortedByPoints(userId: Long): List<TaskEntity> {
         return taskRepository.findTasksByUserIdOrderByPointsDesc(userId)
     }
 
-    //Working
+
     fun getTasksByUserIdAndDate(userId: Long, date: LocalDate): List<TaskEntity> {
         return taskRepository.findByUserIdAndDate(userId, date)
     }
-    //Working
+
     fun addTaskForUser(user: UserEntity, task: TaskEntity): TaskEntity {
         task.user = user // 🔥 THIS is crucial
         return taskRepository.save(task)
