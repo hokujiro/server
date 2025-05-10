@@ -29,10 +29,16 @@ data class UserEntity(
     private val habits: List<Habit>? = null,
 
     @OneToMany(mappedBy = "user", cascade = [CascadeType.ALL], orphanRemoval = true)
-    private val projects: List<ProjectEntity>? = null
+    private val projects: List<ProjectEntity>? = null,
+
+    @OneToMany(mappedBy = "user", cascade = [CascadeType.ALL], orphanRemoval = true)
+    private val rewards: List<RewardEntity>? = null,
+
+    @OneToMany(mappedBy = "user", cascade = [CascadeType.ALL], orphanRemoval = true)
+    private val rewardBundles: List<RewardBundleEntity>? = null,
 
 
-) {
+    ) {
     fun addPoints(points: Float) {
         totalPoints += points
     }

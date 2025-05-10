@@ -26,6 +26,22 @@ class ProjectEntity (
     var tasks: List<TaskEntity>? = null,
 
     @OneToMany(
+        targetEntity = TaskEntity::class,
+        mappedBy = "project",
+        cascade = [CascadeType.REFRESH, CascadeType.PERSIST, CascadeType.MERGE],
+        orphanRemoval = false)
+    @JsonManagedReference
+    var rewards: List<RewardEntity>? = null,
+
+    @OneToMany(
+        targetEntity = TaskEntity::class,
+        mappedBy = "project",
+        cascade = [CascadeType.REFRESH, CascadeType.PERSIST, CascadeType.MERGE],
+        orphanRemoval = false)
+    @JsonManagedReference
+    var rewardBundles: List<RewardBundleEntity>? = null,
+
+    @OneToMany(
         targetEntity = Habit::class,
         mappedBy = "project",
         cascade = [CascadeType.REFRESH, CascadeType.PERSIST, CascadeType.MERGE],

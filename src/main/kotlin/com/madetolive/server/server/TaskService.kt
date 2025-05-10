@@ -7,6 +7,7 @@ import com.madetolive.server.entity.UserEntity
 import com.madetolive.server.model.CreateTaskRequest
 import com.madetolive.server.model.DailyPointsSummary
 import com.madetolive.server.repository.FrameRepository
+import com.madetolive.server.repository.ProjectRepository
 import com.madetolive.server.repository.TaskRepository
 import com.madetolive.server.repository.UserRepository
 import org.springframework.stereotype.Service
@@ -17,26 +18,36 @@ import java.util.*
 class TaskService(
     private val taskRepository: TaskRepository,
     private val userRepository: UserRepository,
-    private val frameRepository: FrameRepository
+    private val frameRepository: FrameRepository,
+    private val projectRepository: ProjectRepository
 ) {
 
     fun getTasksListByUserId(userId: Long): List<TaskEntity> {
         return taskRepository.findByUserId(userId)
     }
 
-    fun updateTaskForUser(user: UserEntity, taskId: Long, request: CreateTaskRequest): TaskEntity? {
+    fun updateTaskForUser(
+        user: UserEntity,
+        taskId: Long,
+        request: CreateTaskRequest
+    ): TaskEntity? {
         val existing = taskRepository.findById(taskId).orElse(null) ?: return null
         if (existing.user?.id != user.id) return null
 
         val wasCompleted = existing.checked
         val oldPoints = existing.points
 
+        // 🔍 Find the ProjectEntity using projectId from request.project.id
+        val projectEntity = request.project.id?.toLongOrNull()?.let { projectId ->
+            projectRepository.findById(projectId).orElse(null)
+        }
+
         val updated = existing.copy(
             title = request.title,
             points = request.points,
             checked = request.checked,
             date = LocalDate.parse(request.date),
-            project = existing.project,
+            project = projectEntity,
             bonus = existing.bonus
         )
 
@@ -54,6 +65,7 @@ class TaskService(
         userRepository.save(user)
         return saved
     }
+
 
     fun deleteTaskForUser(user: UserEntity, taskId: Long): Boolean {
         val task = taskRepository.findById(taskId).orElse(null) ?: return false
