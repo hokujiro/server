@@ -42,6 +42,7 @@ class SecurityConfig(
                 it.requestMatchers("/api/user/**").authenticated()
                 it.requestMatchers("/api/projects/**").authenticated()
                 it.requestMatchers("/api/frames/**").authenticated()
+                it.requestMatchers("/api/rewards/**").authenticated()
                 it.anyRequest().denyAll()
             }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }

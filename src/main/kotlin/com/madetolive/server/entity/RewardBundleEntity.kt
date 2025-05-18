@@ -7,7 +7,8 @@ import jakarta.persistence.*
 
 @Entity
 @Table(name = "reward_bundles")
-data class RewardBundleEntity(
+data class
+RewardBundleEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @JsonProperty("id")
