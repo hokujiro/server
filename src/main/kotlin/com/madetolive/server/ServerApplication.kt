@@ -13,5 +13,5 @@ import io.github.cdimascio.dotenv.dotenv
 class MadeToLiveServerApp
 
 fun main(args: Array<String>) {
-	runApplication<MadeToLiveServerApp>(*args)
+    runApplication<MadeToLiveServerApp>(*args)
 }

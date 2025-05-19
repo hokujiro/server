@@ -126,8 +126,8 @@ fun RewardEntity.toDto(): RewardDto = RewardDto(
     },
     reusable = this.reusable,
     icon = this.icon,
-    photoUrl = this.photoUrl,
-    bundle = this.rewardBundle?.let { bundle ->
+    photoUrl = this.photo,
+    bundle = this.bundle?.let { bundle ->
         BundleDto(
             id = bundle.id.toString(),
             title = bundle.title,

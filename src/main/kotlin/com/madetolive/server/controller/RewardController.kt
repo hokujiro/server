@@ -10,7 +10,6 @@ import com.madetolive.server.server.RewardsService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.security.Principal
-import java.time.LocalDate
 
 @RestController
 @RequestMapping("/api/rewards")
@@ -38,7 +37,7 @@ class RewardController (
             title = request.title,
             points = request.points,
             user = user,
-            photoUrl = request.photoUrl,
+            photo = request.photoUrl,
             reusable = request.reusable,
             icon = request.icon,
             redeemed = request.redeemed

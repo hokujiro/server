@@ -1,16 +1,11 @@
 package com.madetolive.server.repository
 
-import com.madetolive.server.entity.RewardBundleEntity
-import com.madetolive.server.entity.RewardEntity
-import com.madetolive.server.entity.TaskEntity
+import com.madetolive.server.entity.BundleEntity
 import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.Query
-import org.springframework.data.repository.query.Param
-import java.time.LocalDate
 
 
-interface RewardBundlesRepository : JpaRepository<RewardBundleEntity?, Long?> {
+interface RewardBundlesRepository : JpaRepository<BundleEntity?, Long?> {
 
     // 1. Devolver las tareas por userId
-    fun findByUserId(userId: Long): List<RewardBundleEntity>
+    fun findByUserId(userId: Long): List<BundleEntity>
 }

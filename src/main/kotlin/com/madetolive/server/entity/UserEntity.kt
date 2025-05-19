@@ -1,5 +1,6 @@
 package com.madetolive.server.entity
 
+import com.fasterxml.jackson.annotation.JsonManagedReference
 import jakarta.persistence.*
 
 @Entity
@@ -32,10 +33,11 @@ data class UserEntity(
     private val projects: List<ProjectEntity>? = null,
 
     @OneToMany(mappedBy = "user", cascade = [CascadeType.ALL], orphanRemoval = true)
+    @JsonManagedReference("user-reward")
     private val rewards: List<RewardEntity>? = null,
 
     @OneToMany(mappedBy = "user", cascade = [CascadeType.ALL], orphanRemoval = true)
-    private val rewardBundles: List<RewardBundleEntity>? = null,
+    private val rewardBundles: List<BundleEntity>? = null,
 
 
     ) {

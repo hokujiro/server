@@ -7,8 +7,7 @@ import jakarta.persistence.*
 
 @Entity
 @Table(name = "reward_bundles")
-data class
-RewardBundleEntity(
+data class BundleEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @JsonProperty("id")
@@ -28,8 +27,13 @@ RewardBundleEntity(
     @JoinColumn(name = "user_id")
     val user: UserEntity,
 
-    @OneToMany(mappedBy = "rewardList", cascade = [CascadeType.REFRESH, CascadeType.PERSIST, CascadeType.MERGE])
-    @JsonManagedReference
+    @OneToMany(
+        targetEntity = RewardEntity::class,
+        mappedBy = "rewardBundle",
+        cascade = [CascadeType.REFRESH, CascadeType.PERSIST, CascadeType.MERGE],
+        orphanRemoval = false
+    )
+    @JsonManagedReference("reward-bundle")
     val rewards: List<RewardEntity>? = null,
 
     @Column(nullable = true)

@@ -22,13 +22,14 @@ data class RewardEntity(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
+    @JsonBackReference("user-reward")
     var user: UserEntity,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonProperty("bundle")
     @JoinColumn(name = "reward_list_id", nullable = true)
-    @JsonBackReference
-    val rewardBundle: RewardBundleEntity? = null,
+    @JsonBackReference("reward-bundle")
+    val bundle: BundleEntity? = null,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonProperty("project")
@@ -38,7 +39,7 @@ data class RewardEntity(
 
     @Column(nullable = true)
     @JsonProperty("photo")
-    val photoUrl: String?,
+    val photo: String?,
 
     @Column(nullable = false)
     @JsonProperty("reusable")

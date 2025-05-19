@@ -39,7 +39,7 @@ class ProjectEntity (
         cascade = [CascadeType.REFRESH, CascadeType.PERSIST, CascadeType.MERGE],
         orphanRemoval = false)
     @JsonManagedReference
-    var rewardBundles: List<RewardBundleEntity>? = null,
+    var rewardBundles: List<BundleEntity>? = null,
 
     @OneToMany(
         targetEntity = Habit::class,
