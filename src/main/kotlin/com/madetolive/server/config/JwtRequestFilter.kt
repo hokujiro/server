@@ -27,11 +27,15 @@ class JwtRequestFilter(
         response: HttpServletResponse,
         filterChain: FilterChain
     ) {
-      /*  val path = request.servletPath
-        if (path.startsWith("/api/auth") || path.startsWith("/error")) {
+        val path = request.servletPath
+
+// ✅ Skip all /api/auth endpoints from filtering
+        if (path.startsWith("/api/auth")) {
+            println("✅ Skipping JWT filter for path: $path")
             filterChain.doFilter(request, response)
             return
-        }*/
+        }
+
         val authorizationHeader = request.getHeader("Authorization")
 
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
@@ -40,7 +44,6 @@ class JwtRequestFilter(
             try {
                 val username = jwtUtil.extractUsername(jwtToken)
 
-                // Only authenticate if no one is already authenticated
                 if (username != null && SecurityContextHolder.getContext().authentication == null) {
                     val userDetails = userService.loadUserByUsername(username)
 
@@ -49,35 +52,21 @@ class JwtRequestFilter(
                             userDetails, null, userDetails.authorities
                         )
                         authentication.details = WebAuthenticationDetailsSource().buildDetails(request)
-
                         SecurityContextHolder.getContext().authentication = authentication
-
-                        println("✅ JWT Filter: Authenticated $username and set security context")
                     } else {
-                        println("❌ JWT Filter: Token validation failed for $username")
                         response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT Token")
                         return
                     }
                 }
 
-            } catch (e: com.auth0.jwt.exceptions.TokenExpiredException) {
-                println("❌ JWT Filter: Token expired")
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token has expired")
-                return
-            } catch (e: com.auth0.jwt.exceptions.JWTVerificationException) {
-                println("❌ JWT Filter: Invalid JWT")
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT Token")
-                return
             } catch (e: Exception) {
-                println("❌ JWT Filter: Unexpected error: ${e.message}")
-                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Unexpected authentication error")
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "JWT Error: ${e.message}")
                 return
             }
         } else {
             println("ℹ️ JWT Filter: No Authorization header or doesn't start with Bearer")
         }
 
-        // Proceed with the rest of the filter chain
         filterChain.doFilter(request, response)
     }
 }

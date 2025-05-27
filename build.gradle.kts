@@ -32,6 +32,13 @@ dependencies {
 	implementation ("org.glassfish.jaxb:jaxb-runtime:2.3.1")
 	implementation("mysql:mysql-connector-java:8.0.33")
 
+	implementation("org.jboss.logging:jboss-logging:3.5.3.Final")
+	implementation("org.hibernate.orm:hibernate-core:6.5.3.Final")
+
+
+	//image storage
+	implementation("org.springframework.boot:spring-boot-configuration-processor")
+
 
 	// Spring Security
 	implementation ("org.springframework.boot:spring-boot-starter-security")
@@ -39,7 +46,11 @@ dependencies {
 
 
 	//Google
-	implementation("com.google.api-client:google-api-client:1.35.0") // Google Token Verification
+	implementation("com.google.api-client:google-api-client:1.35.0")
+	implementation("com.google.http-client:google-http-client-jackson2:1.43.3")
+
+
+	// Google Token Verification
 	implementation("com.auth0:java-jwt:4.2.1") // JWT for authentication
 
 	// JWT support (optional, if you're using JWTs)

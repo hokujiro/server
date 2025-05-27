@@ -29,7 +29,7 @@ data class RewardEntity(
     @JsonProperty("bundle")
     @JoinColumn(name = "reward_list_id", nullable = true)
     @JsonBackReference("reward-bundle")
-    val bundle: BundleEntity? = null,
+    val rewardBundle: BundleEntity? = null,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JsonProperty("project")

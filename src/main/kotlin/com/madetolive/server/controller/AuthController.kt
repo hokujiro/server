@@ -1,6 +1,8 @@
 package com.madetolive.server.controller
 
 import com.auth0.jwt.exceptions.JWTVerificationException
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier
+import com.google.api.client.http.javanet.NetHttpTransport
 import com.madetolive.server.JwtService
 import com.madetolive.server.RefreshTokenRequest
 import com.madetolive.server.TokenResponse
@@ -16,6 +18,9 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.util.*
+import com.google.api.client.json.jackson2.JacksonFactory
+
 
 @RestController
 @RequestMapping("/api/auth")
@@ -101,6 +106,43 @@ class AuthController(
         } catch (e: JWTVerificationException) {
             ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null)
         }
+    }
+
+    @PostMapping("/google-login")
+    fun googleLogin(@RequestBody request: GoogleAuthRequest): ResponseEntity<AuthResponse> {
+        val verifier = GoogleIdTokenVerifier.Builder(NetHttpTransport(), JacksonFactory.getDefaultInstance())
+            .setAudience(listOf("428928442991-nqu8p0lcisgc87gf7332b2p5vsn62gde.apps.googleusercontent.com")) // must match the frontend
+            .build()
+
+        val idToken = verifier.verify(request.idToken)
+            ?: return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null)
+
+        val payload = idToken.payload
+        val email = payload.email
+        val name = payload["name"] as? String ?: email
+
+        // Check if user exists, if not create one
+        val existingUser = userRepository.findByEmail(email)
+        val user = existingUser ?: userRepository.save(
+            UserEntity(
+                username = email, // or generate a unique username
+                password = passwordEncoder.encode(UUID.randomUUID().toString()), // dummy password
+                email = email
+            )
+        )
+
+        val jwtToken = jwtService.generateToken(user)
+        val refreshToken = refreshTokenService.createRefreshToken(user.id)
+
+        return ResponseEntity.ok(
+            AuthResponse(
+                userId = user.id,
+                name = user.username,
+                email = user.email,
+                token = jwtToken,
+                refreshToken = refreshToken
+            )
+        )
     }
 
 

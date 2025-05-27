@@ -21,6 +21,9 @@ data class UserEntity(
     @Column(nullable = true)
     val roles: String = "ROLE_USER", // e.g., "ROLE_USER,ROLE_ADMIN"
 
+    @Column(nullable = true)
+    val photo: String = "",
+
     private var totalPoints: Float = 0.0f,
 
     @OneToMany(mappedBy = "user", cascade = [CascadeType.ALL], orphanRemoval = true)

@@ -43,13 +43,13 @@ class RewardController (
             redeemed = request.redeemed
         )
 
-        request.project.id.takeIf { it.isNotBlank() && it.all { char -> char.isDigit() } }?.toLongOrNull()?.let { projectId ->
+        request.project?.id.takeIf { it?.isNotBlank() == true && it.all { char -> char.isDigit() } }?.toLongOrNull()?.let { projectId ->
             val project = projectRepository.findById(projectId).orElse(null)
             reward.project = project
         }
 
 
-        request.bundle.id.takeIf { it.isNotBlank() && it.all { char -> char.isDigit() } }?.toLongOrNull()?.let { bundleId ->
+        request.bundle?.id.takeIf { it?.isNotBlank() == true && it.all { char -> char.isDigit() } }?.toLongOrNull()?.let { bundleId ->
             val project = projectRepository.findById(bundleId).orElse(null)
             reward.project = project
         }

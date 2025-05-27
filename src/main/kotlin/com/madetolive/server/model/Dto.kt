@@ -3,6 +3,7 @@ package com.madetolive.server.model
 import com.madetolive.server.entity.FrameEntity
 import com.madetolive.server.entity.RewardEntity
 import com.madetolive.server.entity.TaskEntity
+import com.madetolive.server.entity.UserEntity
 
 // --- DTOs ---
 
@@ -17,8 +18,8 @@ data class CreateTaskRequest(
 data class CreateRewardRequest(
     val title: String,
     val points: Float,
-    val project: ProjectDto,
-    val bundle: BundleDto,
+    val project: ProjectDto?,
+    val bundle: BundleDto?,
     val photoUrl: String?,
     val icon: String?,
     val reusable: Boolean,
@@ -127,7 +128,7 @@ fun RewardEntity.toDto(): RewardDto = RewardDto(
     reusable = this.reusable,
     icon = this.icon,
     photoUrl = this.photo,
-    bundle = this.bundle?.let { bundle ->
+    bundle = this.rewardBundle?.let { bundle ->
         BundleDto(
             id = bundle.id.toString(),
             title = bundle.title,
@@ -144,3 +145,23 @@ fun RewardEntity.toDto(): RewardDto = RewardDto(
     },
     redeemed = this.redeemed
 )
+
+data class UserDto(
+    val id: Long,
+    val username: String,
+    val email: String?,
+    val photo: String?,
+    val totalPoints: Float
+) {
+    companion object {
+        fun fromEntity(entity: UserEntity): UserDto {
+            return UserDto(
+                id = entity.id,
+                username = entity.username,
+                email = entity.email,
+                photo = entity.photo,
+                totalPoints = entity.getTotalPoints()
+            )
+        }
+    }
+}

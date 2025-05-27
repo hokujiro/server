@@ -35,8 +35,7 @@ class RewardsService(
         val existing = rewardsRepository.findById(rewardId).orElse(null) ?: return null
         if (existing.user.id != user.id) return null
 
-        // 🔍 Find the ProjectEntity using projectId from request.project.id
-        val projectEntity = request.project.id.toLongOrNull()?.let { projectId ->
+        val projectEntity = request.project?.id?.toLongOrNull()?.let { projectId ->
             projectRepository.findById(projectId).orElse(null)
         }
 
