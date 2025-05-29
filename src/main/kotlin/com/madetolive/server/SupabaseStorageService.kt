@@ -73,7 +73,9 @@ class SupabaseStorageService(
 
         // Delete the objects
         val deleteUri = URI.create("${config.url}/storage/v1/object/profile-images")
-        val deleteBody = JSONArray(objectPaths).toString()
+        val deleteJson = JSONObject()
+        deleteJson.put("prefixes", JSONArray(objectPaths))
+        val deleteBody = deleteJson.toString()
 
         val deleteRequest = HttpRequest.newBuilder()
             .uri(deleteUri)
