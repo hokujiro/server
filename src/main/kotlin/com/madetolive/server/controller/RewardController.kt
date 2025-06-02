@@ -58,6 +58,42 @@ class RewardController (
         return ResponseEntity.ok(savedReward.toDto())
     }
 
+    @PostMapping("/redeem/{id}")
+    fun redeemReward(
+        principal: Principal,
+        @PathVariable id: Long
+    ): ResponseEntity<String> {
+        val user = findUser(principal) ?: return ResponseEntity.status(401).body("User not found")
+        val reward = rewardsRepository.findById(id).orElse(null)
+            ?: return ResponseEntity.notFound().build()
+
+        if (reward.user.id != user.id) {
+            return ResponseEntity.status(403).body("You are not authorized to redeem this reward")
+        }
+
+        if (!reward.reusable && reward.redeemed) {
+            return ResponseEntity.badRequest().body("This reward has already been redeemed")
+        }
+
+        if (user.getTotalPoints() < reward.points) {
+            return ResponseEntity.badRequest().body("Not enough points to redeem this reward")
+        }
+
+        // Subtract points
+        user.subtractPoints(reward.points)
+
+        // Mark as redeemed if not reusable
+        if (!reward.reusable) {
+            reward.redeemed = true
+        }
+
+        // Save updates
+        userRepository.save(user)
+        rewardsRepository.save(reward)
+
+        return ResponseEntity.ok("Reward redeemed successfully")
+    }
+
     @PutMapping("/update/{id}")
     fun updateReward(
         principal: Principal,
